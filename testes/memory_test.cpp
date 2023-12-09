@@ -26,7 +26,9 @@ int max = 1542;
 
 struct mem{
     int flag;
-    int max_size = 1542;
+
+    int_8t max_size = 1542;
+
     int mem_id;
     key_t key;
 };
@@ -37,25 +39,31 @@ struct pc{
 };
 
 
+int create_or_att_memory(key_t key){
+
+}
+
+
 int write_to_memory(char* message, int mem_id){
     // shmat to attach to shared memory
-    printf("teste1\n");
+)
     char *str = (char*)shmat(mem_id, NULL, 0);
     if (str == (char*)-1) {
         perror("shmat");
         exit(1);
     }
-    printf("teste2\n");
-    snprintf(str, 1542, "%s", message );
-    printf("teste3\n");
 
-//    cout << "Data written in memory: " << str << endl;
+    snprintf(str, 1542, "%s", message );
+
     shmdt(str);
     return 0;
 }
 
-int read_from_memory(int mem_id){
+
+char read_from_memory(int mem_id){
     char *str = (char*)shmat(mem_id, NULL, 0);
+    char 
+
     if (str == (char*)-1) {
         perror("shmat");
         exit(1);
@@ -67,45 +75,59 @@ int read_from_memory(int mem_id){
 }
 
 
+//gerar um tamanho fixo para cada pacote. nao é precito ter tanta complexidade. 
+//estamos trabalhando com um simulador com pacote fixo
+//tomar cuidado com o tamanho mínimo do pacote
 
-//while(1){
-//    sleep(3);
-//    cout << "esperando\n";
-//}
- 
+// setar a flag ta 0 
+// o primeiro que colocar alguma coisa, set a flag para 1
+// verificar se o pacote é esse ou não
+// se não, verificar onde devemos aguardar um tempo e tentar depois
+
+//mac de 24 bits
+
+
+//um mac deve ter 48 bits 
 int main()
 {
-    int size = 1547;
+    int size = 1548;
 
     struct mem *teste = (struct mem*)malloc(sizeof(struct mem)); 
 
-    teste->key = ftok("./mem2", 55);  //toda vez que mudar o tamnho da memoria, associar a um arquivo ou ID novo
+    teste->key = ftok("./mem", 55);  //toda vez que mudar o tamnho da memoria, associar a um arquivo ou ID novo
+
     if(teste->key == -1){
         perror("ftok");
         exit(1);
     }
 
-    printf("teste: key: %d \n", teste->key);    
     
     // shmget returns an identifier in shmid
     while(((teste->mem_id = shmget(teste->key, size, IPC_CREAT) < 0))){
         cout << "impossível criar memoria " << size << "\n";
-        //size = size - 1;
+        perror("shmget");
         sleep(2);
-        
-        //shmctl(teste->key, IPC_RMID, NULL);
     }
 
-    exit(1);
+    
 
-    printf("Mem_id: %d\n", teste->mem_id);
-    if(teste->mem_id == -1 && shmctl(teste->key, IPC_RMID, NULL) == -1){
-        perror("shmctl IPC_RMID");
-        exit(0);
-    }
-    teste->mem_id = shmget(teste->key, 1542, 0777);
 
-    printf("teste: id: %d \n", teste->mem_id);    
+
+
+
+
+
+
+
+   // printf("Mem_id: %d\n", teste->mem_id);
+   // if(teste->mem_id == -1 && shmctl(teste->key, IPC_RMID, NULL) == -1){
+   //     perror("shmctl IPC_RMID");
+   //     exit(0);
+   //     
+   // }
+
+    // printf("teste: id: %d \n", teste->mem_id);    
+
     write_to_memory("teste123", teste->mem_id);
     read_from_memory(teste->mem_id);
     return 0;
