@@ -47,19 +47,17 @@ T generateRandomNumber(int byteLength) {
 
 
 
+
+//    int_8t max_size = 1542;
+
 struct mem{
     int flag;
-<<<<<<< HEAD
-
-    int_8t max_size = 1542;
-
-=======
-//    int_8t max_size = 1542;
     int max_size = 1542;
->>>>>>> 40f6679 (testes)
+
     int mem_id;
     key_t key;
 };
+
 
 
 struct client{
@@ -80,7 +78,7 @@ client* generate_client(){
 
 int write_to_memory(char* message, int mem_id){
     // shmat to attach to shared memory
-)
+
     char *str = (char*)shmat(mem_id, NULL, 0);
     if (str == (char*)-1) {
         perror("shmat");
@@ -96,11 +94,7 @@ int write_to_memory(char* message, int mem_id){
 
 char read_from_memory(int mem_id){
     char *str = (char*)shmat(mem_id, NULL, 0);
-<<<<<<< HEAD
-    char 
 
-=======
->>>>>>> 40f6679 (testes)
     if (str == (char*)-1) {
         perror("shmat");
         exit(1);
@@ -156,6 +150,40 @@ int main()
    // }
 
     // printf("teste: id: %d \n", teste->mem_id);    
+
+
+struct pc{
+    long mac;
+};
+
+
+int write_to_memory(char* message, int mem_id){
+    // shmat to attach to shared memory
+    char *str = (char*)shmat(mem_id, (void*)0, 0);
+    snprintf(str, max, "%s", message )
+//    cout << "Data written in memory: " << str << endl;
+    shmdt(str);
+    return 0;
+}
+
+int read_from_memory(int mem_id){
+    char *str = (char*)shmat(mem_id, (void*)0, 0);
+    cout << "Data written in memory: " << str << endl;
+    shmdt(str);
+    return 0;
+}
+
+ 
+int main()
+{
+    struct mem *teste = (struct mem*)malloc(sizeof(struct mem)); 
+
+    teste->key = ftok("shmfile", 65); 
+
+    // shmget returns an identifier in shmid
+    teste->mem_id = shmget(teste->key, teste->max_size, 0777 | IPC_CREAT);
+
+    
 
     write_to_memory("teste123", teste->mem_id);
     read_from_memory(teste->mem_id);
