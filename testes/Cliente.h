@@ -51,6 +51,7 @@ class Cliente{
 
         int setMac(uint64_t mac_adr){
             this->mac_adr = mac_adr;
+            return this->mac_adr;
         }
 
         int set_mem_id(int mem_id){
@@ -64,6 +65,36 @@ class Cliente{
                 return 1;
             }
         }
+
+        template <typename T>
+        T generateRandomNumber(int byteLength) {
+            std::random_device rd;
+            std::mt19937_64 eng(rd());
+            std::uniform_int_distribution<T> distr(0, std::numeric_limits<T>::max());
+
+            T randomValue = 0;
+
+            for (int i = 0; i < byteLength; i++) {
+                //printf("T: %b\n", randomValue);
+                //randomValue = 2;
+                //randomValue =  (randomValue << 8);
+                //printf("T: %b\n", randomValue);
+                randomValue = (randomValue << 8) | distr(eng);
+                //printf("T: %b\n", randomValue);
+                //printf("F: %b\n", distr(eng));
+                //for(int i = 0; i < 8*sizeof(T); i++) {
+                //     int j = 8 * sizeof(int) - 1 - i;
+                //    printf("%d ", (randomValue >> j) & 1);
+                //}
+                //printf("\n");
+            }
+
+            // Mask out the bits beyond the desired byte length
+            randomValue &= ((T(1) << (byteLength * 8)) - 1);
+
+            return randomValue;
+        }
+
 
         int write_to_memory(char* message, int mem_id){
             // shmat to attach to shared memory
@@ -97,5 +128,9 @@ class Cliente{
             strcpy(tmp, str);
             shmdt(str);
             return tmp;
+        }
+
+        long long generate_packet(){
+            return generateRandomNumber<long long>(1400);
         }
 };

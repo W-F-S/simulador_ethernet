@@ -183,7 +183,6 @@ int main()
     // shmget returns an identifier in shmid
     teste->mem_id = shmget(teste->key, teste->max_size, 0777 | IPC_CREAT);
 
-    
 
     write_to_memory("teste123", teste->mem_id);
     read_from_memory(teste->mem_id);

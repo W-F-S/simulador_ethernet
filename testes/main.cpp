@@ -9,6 +9,7 @@
 #include <random>
 #include "Cliente.h"
 
+using namespace std;
 
 int main(){
 
@@ -21,6 +22,12 @@ int main(){
     Cliente cliente(key);
 
 
+    //int teste = cliente.generateRandomNumber<long long>(1);
+    //printf("Teste123: %d", teste);
+    long long teste = cliente.generate_packet();
+    printf("Teste123: %b", teste);
+
+/*
     const char* message = "Hello, shared memory!";
     cliente.write_to_memory(const_cast<char*>(message), cliente.mem_id);
     char* readMessage = cliente.read_from_memory(cliente.mem_id);
@@ -31,7 +38,7 @@ int main(){
         std::cout << "Read Message: " << readMessage << std::endl;
         free(readMessage);  // Don't forget to free the allocated memory
     }
-
+*/
 
     return 0;
 }
