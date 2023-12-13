@@ -7,23 +7,38 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <random>
+#include <vector>
 #include "Cliente.h"
 
 using namespace std;
 
 
 
+char* generate_random_string(int size) {
+    std::random_device rd;
+    std::uniform_int_distribution<int> dist(1, 255);
+
+    // Allocate memory for the string
+    char* data = (char*)malloc( size * sizeof(char));
+    
+    for (int i = 0; i < size; i++) {
+        data[i] = static_cast<char>(dist(rd) & 0xFF);
+        std::cout << i << std::endl;
+    }
+    data[size-1] = '\0';
+     
+    return data;
+}
 
 int main(){
     struct mem *meio = (struct mem*)malloc(sizeof(struct mem)); 
 
-
-    meio->key = ftok("./main.cpp", 'a');
-    if (meio->key == -1) {
-        perror("ftok");
-        exit(1);
+    meio->mem_id = shmget(999, 1500, 0777 | IPC_CREAT);
+    if (meio->mem_id < 0) {
+        perror("impossível criar memoria\nshmget");
     }
 
+/*
     for(int i = 0; i < 90; ++i) {
         pid_t pid = fork();
 
@@ -33,48 +48,12 @@ int main(){
         } else if (pid == 0) {
 
 
-            Cliente childCliente(meio->key, -1, meio);
+            Cliente childCliente(meio);
 
             cout << "Child process " << i << " created. Mac: " << childCliente.getMac()<< endl;
-                childCliente.iniciar();
-
-
-            // Code for the child process
-
-
-            // You can create a new instance of Cliente in the child process if needed.
-            // For example:
-
-            
-
-            // Additional child process logic can be added here.
-
-          // Exit the child process
-                      exit(0);
+            childCliente.iniciar();
         }
     }
-
-
-
-
-
-    //int teste = cliente.generateRandomNumber<long long>(1);
-    //printf("Teste123: %d", teste);
-    //long long teste = cliente.generate_packet();
-    //printf("Teste123: %b", teste);
-
-/*
-    const char* message = "Hello, shared memory!";
-    cliente.write_to_memory(const_cast<char*>(message), cliente.mem_id);
-    char* readMessage = cliente.read_from_memory(cliente.mem_id);
-
-
-    // Display the read message
-    if (readMessage != nullptr) {
-        std::cout << "Read Message: " << readMessage << std::endl;
-        free(readMessage);  // Don't forget to free the allocated memory
-    }
 */
-
     return 0;
 }

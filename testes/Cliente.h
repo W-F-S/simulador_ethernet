@@ -25,19 +25,14 @@ class Cliente{
     public:
         std::vector<uint64_t> know_macs;
         int mem_id;
-        uint64_t mac_adr;
+        char* mac_adr;
         int size = 1548;
         struct mem *meio;
 
     
-        Cliente(key_t key, uint64_t mac_adr = -1, struct mem *meio = NULL){
-            this->mem_id = connect_meio(key);
-            if(mac_adr == -1){
-                this->mac_adr = generate_mac();
-            }
-            if(meio != nullptr){
-                this->meio = meio;                
-            }
+        Cliente(struct mem *meio){
+            this->meio = meio;
+            generate_random_string(48);
         }
 
 
@@ -48,11 +43,12 @@ class Cliente{
             snprintf(mensagem, 199, "Process ID is: %d", pid);
 
             printf("Cliente(%d) iniciando processo\n", pid);
-            long long numero = generateRandomNumber<long long>(20);
+            //long long numero = generateRandomNumber<long long>(20);
             while (1){
                 printf("(%d) ... (%d)\n", pid, this->meio->flag);
                 if((this->meio->flag) == 0){
-                    int sec = generateRandomNumber2<int>(10);
+            //        int sec = generateRandomNumber2<int>(10);
+                    int sec = 0;
 
                     this->meio->flag = 1;
                     
@@ -73,74 +69,43 @@ class Cliente{
             }
         }
 
-        uint64_t generate_mac(){
-            std::random_device rd;
-            std::mt19937_64 eng(rd());
-            std::uniform_int_distribution<uint64_t> distr(0, (UINT64_C(1) << 46) - 1);
 
-            // Generate a random 46-bit number
-            uint64_t randomValue = distr(eng);
-
-            // Clear the first 2 bits
-            randomValue &= ~(UINT64_C(0b11) << 46);
-
-            return randomValue;
-        }
-
-        int connect_meio(key_t key){
-            int mem_id = shmget(key, this->size, 0777 | IPC_CREAT);
-            if (mem_id < 0) {
-                perror("impossível criar memoria\nshmget");
-            }
-            return mem_id;
-        }
-
-        int setMac(uint64_t mac_adr){
+        void setMac(char* mac_adr){
             this->mac_adr = mac_adr;
+        }
+
+        char* getMac(){
             return this->mac_adr;
         }
 
-        int getMac(){
-            return this->mac_adr;
-        }
-
-        int set_mem_id(int mem_id){
-            char *str = (char*)shmat(mem_id, NULL, 0);
-            if (str == (char*)-1) {
-                printf("Impossível conectar no endereço: %d\n" , mem_id);
-                perror("shmat");
-                return -1;
-            }else{
-                this->mem_id = mem_id;
-                return 1;
-            }
-        }
-
-        //gpt
-        template <typename T>
-        T generateRandomNumber(int byteLength) {
+         
+        int generateRandomNumber2(int max) {
             std::random_device rd;
             std::mt19937_64 eng(rd());
-            std::uniform_int_distribution<T> distr(0, std::numeric_limits<T>::max());
-            T randomValue = 0;
-            for (int i = 0; i < byteLength; i++) {
-                randomValue = (randomValue << 8) | distr(eng);
-            }
-            randomValue &= ((T(1) << (byteLength * 8)) - 1);
-            return randomValue;
-        }
-
-//gpt
-        template <typename T>
-        T generateRandomNumber2(int max) {
-            std::random_device rd;
-            std::mt19937_64 eng(rd());
-            std::uniform_int_distribution<T> distr(0, max);
+            std::uniform_int_distribution<int> distr(0, max);
             return distr(eng);
         }
 
+
+
+        char* generate_random_string(int size) {
+            std::random_device rd;
+            std::uniform_int_distribution<int> dist(1, 255);
+
+            // Allocate memory for the string
+            char* data = (char*)malloc( size * sizeof(char));
+            
+            for (int i = 0; i < size; i++) {
+                data[i] = static_cast<char>(dist(rd) & 0xFF);
+                std::cout << i << std::endl;
+            }
+            data[size-1] = '\0';
+            
+            return data;
+        }
+
         int write_to_memory(char* message){
-            return write_to_memory(message, this->mem_id);
+            return write_to_memory(message, this->meio->mem_id);
         }
 
         int write_to_memory(char* message, int mem_id){
@@ -157,7 +122,7 @@ class Cliente{
         }
 
         char* read_from_memory(){
-            return _read_from_memory(this->mem_id);
+            return _read_from_memory(this->meio->mem_id);
         }
 
         char* _read_from_memory(int mem_id){
@@ -177,7 +142,5 @@ class Cliente{
             return tmp;
         }
 
-        long long generate_packet(){
-            return generateRandomNumber<long long>(1400);
-        }
+        
 };
