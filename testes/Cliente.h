@@ -11,21 +11,67 @@
 #include <random>
 #include <vector>
 
+
+
+struct mem{
+    int flag=0;
+    int max_size = 1542;
+
+    int mem_id;
+    key_t key = 0;
+};
+
 class Cliente{
     public:
         std::vector<uint64_t> know_macs;
         int mem_id;
         uint64_t mac_adr;
         int size = 1548;
+        struct mem *meio;
 
     
-        Cliente(key_t key, uint64_t mac_adr = -1){
+        Cliente(key_t key, uint64_t mac_adr = -1, struct mem *meio = NULL){
             this->mem_id = connect_meio(key);
             if(mac_adr == -1){
                 this->mac_adr = generate_mac();
             }
+            if(meio != nullptr){
+                this->meio = meio;                
+            }
         }
 
+
+
+        bool iniciar(){
+            pid_t pid = getpid();
+            char *mensagem = (char *)malloc(200 * sizeof(char));            
+            snprintf(mensagem, 199, "Process ID is: %d", pid);
+
+            printf("Cliente(%d) iniciando processo\n", pid);
+            long long numero = generateRandomNumber<long long>(20);
+            while (1){
+                printf("(%d) ... (%d)\n", pid, this->meio->flag);
+                if((this->meio->flag) == 0){
+                    int sec = generateRandomNumber2<int>(10);
+
+                    this->meio->flag = 1;
+                    
+                    printf("memoria livre, Cliente(%d) tentando escrever na memoria\n", pid);
+                    
+                    write_to_memory(mensagem);
+                    char * lido = read_from_memory();
+                    printf("escrito: %s\n", lido);
+
+                    sleep(sec);
+                    this->meio->flag = 0;
+                }else {                    
+                    printf("Cliente(%d) tentando ler, memoria(%d)\n", pid, this->meio->flag);
+                    char *teste = read_from_memory();
+                    printf("\n\n\n\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n\n\n\n");
+                    printf("Conteudo lido da memoria: %s\n", teste);
+                }
+            }
+        }
 
         uint64_t generate_mac(){
             std::random_device rd;
@@ -54,6 +100,10 @@ class Cliente{
             return this->mac_adr;
         }
 
+        int getMac(){
+            return this->mac_adr;
+        }
+
         int set_mem_id(int mem_id){
             char *str = (char*)shmat(mem_id, NULL, 0);
             if (str == (char*)-1) {
@@ -66,35 +116,32 @@ class Cliente{
             }
         }
 
+        //gpt
         template <typename T>
         T generateRandomNumber(int byteLength) {
             std::random_device rd;
             std::mt19937_64 eng(rd());
             std::uniform_int_distribution<T> distr(0, std::numeric_limits<T>::max());
-
             T randomValue = 0;
-
             for (int i = 0; i < byteLength; i++) {
-                //printf("T: %b\n", randomValue);
-                //randomValue = 2;
-                //randomValue =  (randomValue << 8);
-                //printf("T: %b\n", randomValue);
                 randomValue = (randomValue << 8) | distr(eng);
-                //printf("T: %b\n", randomValue);
-                //printf("F: %b\n", distr(eng));
-                //for(int i = 0; i < 8*sizeof(T); i++) {
-                //     int j = 8 * sizeof(int) - 1 - i;
-                //    printf("%d ", (randomValue >> j) & 1);
-                //}
-                //printf("\n");
             }
-
-            // Mask out the bits beyond the desired byte length
             randomValue &= ((T(1) << (byteLength * 8)) - 1);
-
             return randomValue;
         }
 
+//gpt
+        template <typename T>
+        T generateRandomNumber2(int max) {
+            std::random_device rd;
+            std::mt19937_64 eng(rd());
+            std::uniform_int_distribution<T> distr(0, max);
+            return distr(eng);
+        }
+
+        int write_to_memory(char* message){
+            return write_to_memory(message, this->mem_id);
+        }
 
         int write_to_memory(char* message, int mem_id){
             // shmat to attach to shared memory
@@ -105,26 +152,26 @@ class Cliente{
                 return(-1);
             }
             snprintf(str, 1542, "%s", message );
-
             shmdt(str);
             return 1;
         }
 
+        char* read_from_memory(){
+            return _read_from_memory(this->mem_id);
+        }
 
-        char* read_from_memory(int mem_id){
+        char* _read_from_memory(int mem_id){
             char* tmp;        
             char *str = (char *)shmat(mem_id, NULL, 0);
+
             if (str == (char *)-1) {
                 printf("Erro ao ler da memória\n");
                 perror("shmat");
                 exit(1);
             }
-            printf("Data from memory %s\n", str);
 
-
-            // Allocate memory for a new char array to store the data
             tmp = static_cast<char*>(malloc(strlen(str) + 1));
-            // Copy the data from str to copiedValue
+
             strcpy(tmp, str);
             shmdt(str);
             return tmp;
